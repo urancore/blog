@@ -1,0 +1,185 @@
+body {
+	background-color: #1a1a1a;
+	color: #e0e0e0;
+	font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+	line-height: 1.6;
+	margin: 2rem auto;
+	max-width: 800px;
+	padding: 0 1rem;
+}
+
+.post-container {
+	background-color: #252525;
+	border: 1px solid #333;
+	padding: 2rem;
+	margin-bottom: 2rem;
+}
+
+h1 {
+	color: #ffffff;
+	font-size: 2rem;
+	margin: 1rem 0 2rem 0;
+	font-weight: 600;
+}
+
+.author a {
+	color: #6abf47;
+	text-decoration: none;
+	font-size: 0.9rem;
+	font-weight: 500;
+}
+
+.author a:hover {
+	color: #8cd65f;
+}
+
+p {
+	margin: 1.5rem 0;
+	font-size: 1.1rem;
+}
+
+.created-at {
+	color: #757575;
+	font-size: 0.85rem;
+	margin-top: 2rem;
+}
+
+/* index.html */
+.post-block {
+	background-color: #252525;
+	border: 1px solid #333;
+	padding: 2rem;
+	margin-bottom: 2rem;
+}
+
+.post-header h2 {
+	color: #ffffff;
+	font-size: 1.8rem;
+	margin: 0 0 1rem 0;
+	font-weight: 600;
+}
+
+.post-meta {
+	display: flex;
+	gap: 1.5rem;
+	margin-bottom: 1.5rem;
+	font-size: 0.85rem;
+	color: #757575;
+}
+
+.post-meta span:first-child {
+	color: #6abf47;
+}
+
+.post-meta span:first-child:hover {
+	color: #8cd65f;
+	cursor: pointer;
+}
+
+.post-content {
+	font-size: 1.1rem;
+	color: #e0e0e0;
+	margin: 1.5rem 0;
+}
+
+.no-posts {
+	text-align: center;
+	padding: 2rem;
+	color: #757575;
+	font-size: 1.2rem;
+}
+
+.read-more {
+	display: inline-block;
+	color: #6abf47;
+	text-decoration: none;
+	font-weight: 500;
+	margin-top: 0.8rem;
+	transition: color 0.2s ease;
+}
+
+.read-more:hover {
+	color: #8cd65f;
+	text-decoration: underline;
+}
+
+.post-title-link {
+	color: #ffffff;
+	text-decoration: none;
+}
+
+.post-title-link:hover {
+	color: #6abf47;
+}
+
+/* create.html */
+.create-form {
+	background-color: #252525;
+	border: 1px solid #333;
+	padding: 2rem;
+	margin-bottom: 2rem;
+}
+
+.create-form h1 {
+	color: #ffffff;
+	font-size: 1.8rem;
+	margin: 0 0 1.5rem 0;
+}
+
+.create-form input[type="text"],
+.create-form textarea {
+
+	width: 100%;
+	padding: 0.8rem;
+	margin-bottom: 1.5rem;
+	background-color: #333;
+	border: 1px solid #444;
+	color: #e0e0e0;
+	font-family: inherit;
+	font-size: 1rem;
+	transition: border-color 0.3s ease;
+	box-sizing: border-box;
+}
+
+.create-form textarea {
+	min-height: 100px;
+}
+
+.create-form input[type="text"]:focus,
+.create-form textarea:focus {
+	outline: none;
+	border-color: #6abf47;
+}
+
+.create-form textarea {
+	height: 150px;
+	resize: vertical;
+}
+
+.create-form button {
+	background-color: #6abf47;
+	color: #ffffff;
+	padding: 0.8rem 1.5rem;
+	border: none;
+	cursor: pointer;
+	font-size: 1rem;
+	font-weight: 500;
+	transition: background-color 0.3s ease;
+}
+
+.create-form button:hover {
+	background-color: #8cd65f;
+}
+
+
+
+@media (max-width: 600px) {
+	.post-meta {
+		flex-direction: column;
+		gap: 0.5rem;
+	}
+
+	.post-block {
+		padding: 1.5rem;
+	}
+}

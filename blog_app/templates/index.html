@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block title %}My Page Title{% endblock %}
+
+{% block content %}
+{% if posts %}
+{% for post in posts %}
+<div class="post-block">
+	<div class="post-header">
+		<h3><a href="{% url 'read_post' post.id %}" class="post-title-link">{{ post.title }}</a></h3>
+		<div class="post-meta">
+			<span>Author: {{ post.autor.username }}</span>
+			<span>Created: {{ post.created_at|date:"Y/M/d H:i" }}</span>
+		</div>
+	</div>
+	<div class="post-content">
+		{{ post.content|truncatechars:200 }}
+		<a href="{% url 'read_post' post.id %}" class="read-more">Read more →</a>
+	</div>
+</div>
+{% endfor %}
+{% else %}
+<div class="no-posts">
+	<p>No posts found</p>
+</div>
+{% endif %}
+{% endblock %}
