@@ -26,7 +26,26 @@ def create_post(request: HttpRequest):
 			post.save()
 		return redirect('/')
 
-	return render(request, 'create.html')
+	return render(request, "create.html")
+
+
+def edit_post(request: HttpRequest, post_id: str):
+	post = get_object_or_404(Post, id=post_id)
+	if request.method == 'POST':
+		title = request.POST.get('post__title')
+		content = request.POST.get('post__content')
+		if title and content:
+			post.title = title
+			post.content = content
+			post.save()
+		return redirect('/')
+
+	post = get_object_or_404(Post, id=post_id)
+	return render(request, 'edit.html', {'post': post})
+
 
 def user_page(request: HttpRequest, username: str):
-	pass
+	autor = get_object_or_404(Autor, username=username)
+	posts = Post.objects.filter(autor=autor).order_by('-created_at'ё)
+	data = {"autor": autor, "posts": posts}
+	return render(request, "user_page.html", data)

@@ -5,8 +5,8 @@
 {% block content %}
 <form class="create-form" method="post">
 	{% csrf_token %}
-	<input type="text" name="post__title">
-	<textarea name="post__content"></textarea>
+	<input type="text" name="post__title" placeholder="Post Title">
+	<textarea name="post__content" placeholder="Post Content..."></textarea>
 	<button type="submit">Send</button>
 </form>
 {% endblock %}

@@ -6,7 +6,47 @@ body {
 	margin: 2rem auto;
 	max-width: 800px;
 	padding: 0 1rem;
+	padding-top: 6rem;
 }
+
+.header {
+	background-color: #141414;
+	padding: 1rem 2rem;
+	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+	position: fixed;
+	top: 0;
+	left: 0;
+	right: 0;
+	z-index: 1000;
+	display: flex;
+	align-items: center;
+	gap: 2rem;
+}
+
+.header a {
+	text-decoration: none;
+	color: #6abf47;
+	font-weight: 500;
+	padding: 0.5rem 1rem;
+	transition: all 0.3s ease;
+}
+
+.header a:hover {
+	background-color: #5fa046;
+	color: #000;
+}
+
+
+.header a.active {
+	background-color: #007bff;
+	color: white;
+}
+
+
+.header> :last-child {
+	margin-left: auto;
+}
+
 
 .post-container {
 	background-color: #252525;
@@ -57,6 +97,23 @@ p {
 	font-size: 1.8rem;
 	margin: 0 0 1rem 0;
 	font-weight: 600;
+}
+
+.edit_post a {
+	display: inline-block;
+	padding: 8px 16px;
+	color: #6abf47;
+	background-color: #f0f0f0;
+	border-radius: 4px;
+	text-decoration: none;
+	transition: all 0.3s ease;
+	border: 1px solid #6abf47;
+}
+
+.edit_post a:hover {
+	color: white;
+	background-color: #5aa73a;
+	border-color: #4a8c2e;
 }
 
 .post-meta {
@@ -173,7 +230,110 @@ p {
 
 
 
-@media (max-width: 600px) {
+/* user_page */
+.profile-content {
+	background-color: #252525;
+	border: 1px solid #333;
+	padding: 2rem;
+	margin-bottom: 2rem;
+	max-width: 800px;
+	margin: 0 auto 2rem;
+}
+
+.username {
+	color: #ffffff;
+	font-size: 2rem;
+	margin-bottom: 1.5rem;
+	padding-bottom: 1rem;
+	border-bottom: 1px solid #333;
+	font-weight: 600;
+	letter-spacing: -0.5px;
+}
+
+.description {
+	color: #b0b0b0;
+	font-size: 1.1rem;
+	line-height: 1.6;
+	margin-bottom: 2rem;
+	padding: 0 0.5rem;
+}
+
+.profile__posts_list {
+	margin-top: 1rem;
+	display: grid;
+}
+
+.post__block {
+	background-color: #1f1f1f;
+	border: 1px solid #333;
+	padding: 1.5rem;
+	border-radius: 6px;
+	transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.post__block:hover {
+	transform: translateY(-2px);
+	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.post__block>div:first-child {
+	color: #6abf47;
+	font-size: 1.5rem;
+	margin: 0 0 1rem;
+	font-weight: 600;
+}
+
+.post__block>div:nth-child(2) {
+	font-size: 1rem;
+	color: #e0e0e0;
+	margin: 1rem 0;
+	line-height: 1.7;
+	hyphens: auto;
+}
+
+.post__block>div:last-child {
+	color: #757575;
+	font-size: 0.85rem;
+	margin-top: 1.5rem;
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+}
+
+/* Дополнительные элементы для улучшения читаемости */
+.post__block::after {
+	content: "";
+	display: block;
+	height: 1px;
+	background-color: #333;
+	margin-top: 1.5rem;
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+	.header {
+		padding: 0.8rem 1rem;
+		gap: 1rem;
+	}
+
+	.header a {
+		padding: 0.4rem 0.8rem;
+		font-size: 0.9rem;
+	}
+
+	.profile-content {
+		padding: 1.5rem;
+		margin: 0 1rem 2rem;
+	}
+
+	.username {
+		font-size: 1.75rem;
+	}
+
+	.post__block>div:first-child {
+		font-size: 1.3rem;
+	}
+
 	.post-meta {
 		flex-direction: column;
 		gap: 0.5rem;

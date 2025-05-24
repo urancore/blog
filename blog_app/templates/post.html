@@ -5,6 +5,8 @@
 {% block content %}
 <div class="post-container">
 	<h4 class="author"><a href="/user/{{ post.autor.username }}">autor: {{ post.autor.username }}</a></h4>
+	<div class="edit_post"><a href="{% url 'edit_post' post.id %}">edit</a></div>
+
 	<h1>{{ post.title }}</h1>
 	<p>{{ post.content }}</p>
 	<p class="created-at">Create: {{ post.created_at }}</p>
