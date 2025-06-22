@@ -1,0 +1,17 @@
+env: "local"
+server:
+  host: "localhost"
+  port: "8080"
+
+logger:
+  mode: "local"
+  "disable_src": false
+  file_path: "/stat/log/blog.log"
+
+sqlite:
+  path: "file:storage/blog.db?_foreign_keys=on"
+
+redis:
+  addr: "redis-local:6379"
+  password: "s3cr3tP@ssw0rd"
+  username: "admin"
