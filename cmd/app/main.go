@@ -6,6 +6,8 @@ import (
 	"os"
 
 	"blog/internal/config"
+	requestid "blog/internal/middlewares/request_id"
+	logmd "blog/internal/middlewares/log_md"
 	// "blog/internal/models"
 	"blog/internal/handlers/url/post"
 	"blog/internal/repository/sqliterepo"
@@ -34,16 +36,17 @@ func main() {
 	postRepo := repo.Post()
 
 	mux := http.NewServeMux()
-
 	// TODO: write CRUD api
 	mux.HandleFunc("POST /post/create", post.Create(log, postRepo)) // TODO: add auth
 	mux.HandleFunc("GET /post/{id}", post.Read(log, postRepo))
 	mux.HandleFunc("PATCH /post/update/{id}", post.Update(log, postRepo))
 	mux.HandleFunc("DELETE /post/delete/{id}", post.Delete(log, postRepo))
 
+	handle_mux := requestid.RequestID(logmd.MiddlewareLogger(log)(mux))
+
 	server := &http.Server{
 		Addr: fmt.Sprintf("%s:%s", cfg.Server.Host, cfg.Server.Port),
-		Handler: mux,
+		Handler: handle_mux,
 		ReadTimeout: cfg.Server.ReadTimeout,
 		WriteTimeout: cfg.Server.WriteTimeout,
 		IdleTimeout: cfg.Server.IdleTimeout,

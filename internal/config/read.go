@@ -13,7 +13,7 @@ func Load(configPath string) (*Config, error) {
 
 	var config Config
 	if err := cleanenv.ReadConfig(configPath, &config); err != nil {
-		return nil, fmt.Errorf("error reading config file: %v", err)
+		return nil, fmt.Errorf("error reading config file: %w", err)
 	}
 
 	return &config, nil
