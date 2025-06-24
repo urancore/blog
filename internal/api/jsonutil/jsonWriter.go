@@ -2,6 +2,7 @@ package jsonutil
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 )
 
@@ -10,6 +11,7 @@ func WriteJSON(w http.ResponseWriter, status int, data interface{}) error {
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		_, _ = w.Write([]byte("Internal Server Error"))
+		fmt.Println(err)
 		return err
 	}
 
@@ -17,6 +19,7 @@ func WriteJSON(w http.ResponseWriter, status int, data interface{}) error {
 	w.WriteHeader(status)
 
 	if _, err := w.Write(jsonData); err != nil {
+		fmt.Println(err)
 		return err
 	}
 

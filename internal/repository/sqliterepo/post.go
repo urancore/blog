@@ -95,21 +95,36 @@ func (r *SQlitePostRepo) CreatePost(post *models.Post) (int64, error) {
 }
 
 func (r *SQlitePostRepo) UpdatePost(post *models.Post) error {
-	log := r.log.With("fn", "repository.sqliterepo.UpdatePost")
+	log := r.log.With(slog.String("fn", "repository.sqliterepo.UpdatePost"))
 	query := `
 		UPDATE post
 		SET title = ?, content = ?, updated_at = CURRENT_TIMESTAMP
-		WHERE id = ?
-    	`
-	res, err := r.db.Exec(query, post.Title, post.Content, post.ID)
+		WHERE id = ? AND author_id = ?`
+
+	res, err := r.db.Exec(query,
+		post.Title,
+		post.Content,
+		post.ID,
+		post.AuthorID)
+
 	if err != nil {
-		log.Error("failed to update post", "error", err, "id", post.ID)
+		log.Error("update query failed",
+			"error", err,
+			"id", post.ID,
+			"author_id", post.AuthorID)
 		return fmt.Errorf("update error: %w", repository.ErrOperationFailed)
 	}
 
-	rowsAffected, _ := res.RowsAffected()
+	rowsAffected, err := res.RowsAffected()
+	if err != nil {
+		log.Error("rows affected check failed", "error", err)
+		return fmt.Errorf("update error: %w", repository.ErrOperationFailed)
+	}
+
 	if rowsAffected == 0 {
-		log.Info("post not found during update", "id", post.ID)
+		log.Info("post not found or author mismatch",
+			"id", post.ID,
+			"author_id", post.AuthorID)
 		return repository.ErrNotExists
 	}
 	return nil

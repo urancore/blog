@@ -38,8 +38,8 @@ func main() {
 	// TODO: write CRUD api
 	mux.HandleFunc("POST /post/create", post.Create(log, postRepo)) // TODO: add auth
 	mux.HandleFunc("GET /post/{id}", post.Read(log, postRepo))
-	// mux.HandleFunc("PATCH /post/update/{id}", post.Update(log, postRepo))
-	// mux.HandleFunc("POST /post/delete/{id}", post.Delete(log, postRepo))
+	mux.HandleFunc("PATCH /post/update/{id}", post.Update(log, postRepo))
+	mux.HandleFunc("DELETE /post/delete/{id}", post.Delete(log, postRepo))
 
 	server := &http.Server{
 		Addr: fmt.Sprintf("%s:%s", cfg.Server.Host, cfg.Server.Port),

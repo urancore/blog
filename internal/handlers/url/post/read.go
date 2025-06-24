@@ -61,7 +61,6 @@ func Read(log logger.Logger, postReader PostReader) http.HandlerFunc {
 			Content:  post.Content,
 			AuthorID: post.AuthorID,
 		}
-
 		err = jsonutil.WriteJSON(w, http.StatusCreated, resp)
 		if err != nil {
 			log.Error("json writer error", sl.Error(err))
