@@ -6,17 +6,30 @@ import (
 	"os"
 
 	"blog/internal/config"
-	requestid "blog/internal/middlewares/request_id"
+	"blog/internal/middlewares/auth"
 	logmd "blog/internal/middlewares/log_md"
-	// "blog/internal/models"
+	requestid "blog/internal/middlewares/request_id"
+
 	"blog/internal/handlers/url/post"
+	"blog/internal/handlers/url/user"
 	"blog/internal/repository/sqliterepo"
 	"blog/internal/util/logger"
 	"blog/internal/util/logger/sl"
-	// "blog/internal/util/logger/sl"
 )
 
+const minSecretKeySize = 32
+
 func main() {
+	err := os.Setenv("SECRET_KEY", "01234567890123456789012345678901") // TODO: add to config
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+	secretKey := os.Getenv("SECRET_KEY")
+	if minSecretKeySize < len(secretKey) {
+		fmt.Printf("SECRET_KEY must be at least %d chars\n", minSecretKeySize)
+		os.Exit(1)
+	}
 	cfg, err := config.Load("config/local.yaml")
 	if err != nil {
 		fmt.Println(err)
@@ -34,13 +47,21 @@ func main() {
 
 	repo := sqliterepo.NewSQLiteRepository(log, db)
 	postRepo := repo.Post()
+	userRepo := repo.User()
+
 
 	mux := http.NewServeMux()
-	// TODO: write CRUD api
-	mux.HandleFunc("POST /post/create", post.Create(log, postRepo)) // TODO: add auth
+
+	// TODO: separate routers using a mux. (userMux, postMux, etc...)
+
+	mux.Handle("POST /post/create", auth.AuthMiddleware(post.Create(log, postRepo)))
+	mux.Handle("PATCH /post/update/{id}", auth.AuthMiddleware(post.Update(log, postRepo)))
+	mux.Handle("DELETE /post/delete/{id}", auth.AuthMiddleware(post.Delete(log, postRepo)))
 	mux.HandleFunc("GET /post/{id}", post.Read(log, postRepo))
-	mux.HandleFunc("PATCH /post/update/{id}", post.Update(log, postRepo))
-	mux.HandleFunc("DELETE /post/delete/{id}", post.Delete(log, postRepo))
+
+	// User
+	mux.HandleFunc("POST /user/signup", user.SignUpHandler(log, userRepo))
+	mux.HandleFunc("POST /user/signin", user.SignInHandler(log, userRepo))
 
 	handle_mux := requestid.RequestID(logmd.MiddlewareLogger(log)(mux))
 

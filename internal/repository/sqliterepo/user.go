@@ -43,21 +43,24 @@ func (r *SQliteUserRepo) CreateUser(user *models.User) (int64, error) {
 
 	res, err := r.db.Exec(query, user.Username, user.Password, user.Email)
 	if err != nil {
-		if errors.Is(err, sqlite.ErrConstraintUnique) {
-			if strings.Contains(err.Error(), "username") {
-				return 0, repository.ErrUsernameAlreadyExists
-			}
-			if strings.Contains(err.Error(), "email") {
-				return 0, repository.ErrEmailAlreadyExists
+		var sqliteErr sqlite.Error
+		if errors.As(err, &sqliteErr) {
+			if sqliteErr.ExtendedCode == sqlite.ErrConstraintUnique {
+				switch {
+				case strings.Contains(sqliteErr.Error(), "user.username"):
+					return 0, repository.ErrUsernameAlreadyExists
+				case strings.Contains(sqliteErr.Error(), "user.email"):
+					return 0, repository.ErrEmailAlreadyExists
+				}
 			}
 		}
-		log.Error("error creating user", "error", sl.Error(err))
+		log.Error("error creating user", sl.Error(err))
 		return 0, fmt.Errorf("failed to create user: %w", repository.ErrOperationFailed)
 	}
 
 	id, err := res.LastInsertId()
 	if err != nil {
-		log.Error("failed to get last insert ID", "error", sl.Error(err))
+		log.Error("failed to get last insert ID", sl.Error(err))
 		return 0, fmt.Errorf("failed to get user ID: %w", repository.ErrOperationFailed)
 	}
 
@@ -84,7 +87,7 @@ func (r *SQliteUserRepo) GetUserByID(id int64) (*models.User, error) {
 	)
 
 	if err != nil {
-		if err == sql.ErrNoRows {
+		if errors.Is(err, sql.ErrNoRows) {
 			log.Info("user not found", "id", id)
 			return nil, repository.ErrNotExists
 		}
@@ -115,7 +118,7 @@ func (r *SQliteUserRepo) GetUserByEmail(email string) (*models.User, error) {
 	)
 
 	if err != nil {
-		if err == sql.ErrNoRows {
+		if errors.Is(err, sql.ErrNoRows) {
 			log.Info("user not found", "email", email)
 			return nil, repository.ErrNotExists
 		}

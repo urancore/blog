@@ -11,6 +11,7 @@ import (
 
 	"blog/internal/api/jsonutil"
 	"blog/internal/api/response"
+	"blog/internal/middlewares/auth"
 	"blog/internal/models"
 	"blog/internal/repository"
 	"blog/internal/util/logger"
@@ -20,7 +21,6 @@ import (
 type UpdateRequest struct {
 	Title    string `json:"title" validate:"required,min=3,max=255"`
 	Content  string `json:"content" validate:"required,min=10"`
-	AuthorID int64  `json:"author_id" validate:"required,min=1"`
 }
 
 type UpdateResponse struct {
@@ -37,7 +37,13 @@ func Update(log logger.Logger, postUpdater PostUpdater) http.HandlerFunc {
 	return func(w http.ResponseWriter, r* http.Request) {
 		log := log.With(slog.String("fn", "handlers.url.post.Update"))
 
-		// TODO: check auth user, check user id its correct
+		authorID, ok := r.Context().Value(auth.UserIDCtxKey).(int64)
+		if !ok {
+			jsonutil.WriteJSON(w, http.StatusInternalServerError,
+				response.Error(http.StatusInternalServerError, "Internal Server Error"))
+			return
+		}
+
 		postID, err := strconv.ParseInt(r.PathValue("id"), 10, 64)
 		if err != nil {
 			log.Info("invalid path value", sl.Error(err))
@@ -45,7 +51,6 @@ func Update(log logger.Logger, postUpdater PostUpdater) http.HandlerFunc {
 				response.Error(http.StatusBadRequest, "Bad Request"))
 			return
 		}
-		// if user.id != author.id {its not your post} use jwt tocken
 
 		var req UpdateRequest
 		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -68,8 +73,9 @@ func Update(log logger.Logger, postUpdater PostUpdater) http.HandlerFunc {
 			ID: postID,
 			Title: req.Title,
 			Content: req.Title,
-			AuthorID: req.AuthorID,
+			AuthorID: authorID,
 		}
+
 		err = postUpdater.UpdatePost(newPost)
 		if err != nil {
 			if errors.Is(err, repository.ErrNotExists) {
