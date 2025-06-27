@@ -39,24 +39,21 @@ func SignInHandler(log logger.Logger, userGetter UserGetter) http.HandlerFunc {
 		log := log.With(slog.String("fn", "handlers.url.user.SignIn"))
 
 		if r.Method != http.MethodPost {
-			jsonutil.WriteJSON(w, http.StatusMethodNotAllowed,
-				response.Error(http.StatusMethodNotAllowed, "method not allowed"))
+			util.ErrorResponse(w, http.StatusMethodNotAllowed, "Method Not Allowed")
 			return
 		}
 
 		var req SignInRequest
 		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 			log.Info("decoding error", sl.Error(err))
-			jsonutil.WriteJSON(w, http.StatusBadRequest,
-				response.Error(http.StatusBadRequest, "invalid request"))
+			util.ErrorResponse(w, http.StatusBadRequest, "Invalid Request")
 			return
 		}
 
 		if err := cstValidator.Struct(req); err != nil {
 			validationErrors := err.(validator.ValidationErrors)
 			log.Info("validation failed", sl.Error(validationErrors))
-			jsonutil.WriteJSON(w, http.StatusBadRequest,
-				response.Error(http.StatusBadRequest, "validation error"))
+			util.ErrorResponse(w, http.StatusBadRequest, "Validation Error")
 			return
 		}
 
@@ -64,29 +61,25 @@ func SignInHandler(log logger.Logger, userGetter UserGetter) http.HandlerFunc {
 		if err != nil {
 			if errors.Is(err, repository.ErrNotExists) {
 				log.Info("user not found", slog.String("email", req.Email))
-				jsonutil.WriteJSON(w, http.StatusNotFound,
-					response.Error(http.StatusNotFound, "user not found"))
+				util.ErrorResponse(w, http.StatusNotFound, "User Not Found")
 				return
 			}
 
 			log.Error("get user error", sl.Error(err))
-			jsonutil.WriteJSON(w, http.StatusInternalServerError,
-				response.Error(http.StatusInternalServerError, "internal error"))
+			util.ErrorResponse(w, http.StatusInternalServerError, "Internal Server Error")
 			return
 		}
 
 		if !util.CheckPasswordHash(req.Password, user.Password) {
 			log.Info("invalid password", slog.String("email", req.Email))
-			jsonutil.WriteJSON(w, http.StatusUnauthorized,
-				response.Error(http.StatusUnauthorized, "invalid credentials"))
+			util.ErrorResponse(w, http.StatusUnauthorized, "Invalid Credentials")
 			return
 		}
 
 		token, err := auth.GenerateToken(user.ID, user.Username, user.Password)
 		if err != nil {
 			log.Error("error generation token", sl.Error(err), slog.Int64("user_id", user.ID))
-			jsonutil.WriteJSON(w, http.StatusInternalServerError,
-				response.Error(http.StatusInternalServerError, "Internal Server Error"))
+			util.ErrorResponse(w, http.StatusInternalServerError, "Internal Server Error")
 			return
 		}
 

@@ -6,9 +6,9 @@ import (
 	"net/http"
 	"strings"
 
-	"blog/internal/api/jsonutil"
-	"blog/internal/api/response"
+
 	"blog/internal/handlers/auth"
+	"blog/internal/util"
 )
 
 // 401 unauthorized
@@ -22,20 +22,20 @@ func AuthMiddleware(next http.Handler) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		header := r.Header.Get(authHeader)
 		if header == " " {
-			jsonutil.WriteJSON(w, http.StatusUnauthorized, response.Error(http.StatusUnauthorized, "auth header empty"))
+			util.ErrorResponse(w, http.StatusUnauthorized, "Auth Header Empty")
 			return
 		}
 
 		headerParts := strings.Split(header, " ")
 		if len(headerParts) != 2 {
-			jsonutil.WriteJSON(w, http.StatusUnauthorized, response.Error(http.StatusUnauthorized, "invalid auth header"))
+			util.ErrorResponse(w, http.StatusUnauthorized, "Invalid Auth Header")
 			return
 		}
 
 		userID, err := auth.ParseToken(headerParts[1])
 		if err != nil {
 			fmt.Println(err)
-			jsonutil.WriteJSON(w, http.StatusUnauthorized, response.Error(http.StatusUnauthorized, "invalid auth token"))
+			util.ErrorResponse(w, http.StatusUnauthorized, "Invalid Auth Token")
 			return
 		}
 

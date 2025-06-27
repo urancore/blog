@@ -10,30 +10,37 @@ import (
 	"blog/internal/api/response"
 	"blog/internal/models"
 	"blog/internal/repository"
+	"blog/internal/util"
 	"blog/internal/util/logger"
 	"blog/internal/util/logger/sl"
 )
 
-type ReadResponse struct {
+// TODO: reafactor struct
+
+type readResponse struct {
 	response.BaseResponse
 	PostID   int64  `json:"post_id,omitempty"`
 	Title    string `json:"title"`
 	Content  string `json:"content"`
 	AuthorID int64  `json:"author_id"`
+	Username string `json:"username"`
 }
 
-type PostReader interface {
+type postReader interface {
 	GetPostByID(id int64) (*models.Post, error)
 }
 
-func Read(log logger.Logger, postReader PostReader) http.HandlerFunc {
+type userGetterReader interface {
+	GetUserByID(id int64) (*models.User, error)
+}
+
+func Read(log logger.Logger, postReader postReader, userGetter userGetterReader) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		log := log.With("fn", "handlers.url.post.Read")
 		postID, err := strconv.ParseInt(r.PathValue("id"), 10, 64)
 		if err != nil {
 			log.Info("invalid path value", sl.Error(err))
-			jsonutil.WriteJSON(w, http.StatusBadRequest,
-				response.Error(http.StatusBadRequest, "Bad Request"))
+			util.ErrorResponse(w, http.StatusBadRequest, "Bad Request")
 			return
 		}
 
@@ -42,17 +49,27 @@ func Read(log logger.Logger, postReader PostReader) http.HandlerFunc {
 		if err != nil {
 			if errors.Is(err, repository.ErrNotExists) {
 				log.Info("post not found", sl.Error(err), slog.Int64("postID", postID))
-				jsonutil.WriteJSON(w, http.StatusBadRequest,
-					response.Error(http.StatusNotFound, "Page Not Found"))
+				util.ErrorResponse(w, http.StatusBadRequest, "Page Not Found")
 				return
 			}
 			log.Error("error get post by id", sl.Error(err), slog.Int64("postID", postID))
-			jsonutil.WriteJSON(w, http.StatusInternalServerError,
-				response.Error(http.StatusInternalServerError, "Internal Server Error"))
+			util.ErrorResponse(w, http.StatusInternalServerError, "Internal Server Error")
 			return
 		}
-		// TODO: ADD REDIS for cach
-		resp := ReadResponse{
+		user, err := userGetter.GetUserByID(post.AuthorID)
+		if err != nil {
+			if errors.Is(err, repository.ErrNotExists) {
+				log.Info("author not found",
+					slog.Int64("user_id", post.AuthorID),
+					sl.Error(err))
+			}
+			log.Error("error getting author",
+				slog.Int64("user_id", post.AuthorID),
+				sl.Error(err))
+		}
+
+		// TODO: ADD REDIS for cache
+		resp := readResponse{
 			BaseResponse: response.BaseResponse{
 				Status: http.StatusOK,
 			},
@@ -60,6 +77,7 @@ func Read(log logger.Logger, postReader PostReader) http.HandlerFunc {
 			Title:    post.Title,
 			Content:  post.Content,
 			AuthorID: post.AuthorID,
+			Username: user.Username,
 		}
 		err = jsonutil.WriteJSON(w, http.StatusCreated, resp)
 		if err != nil {

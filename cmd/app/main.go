@@ -25,17 +25,17 @@ func main() {
 		fmt.Println(err)
 		os.Exit(1)
 	}
+
 	secretKey := os.Getenv("SECRET_KEY")
 	if minSecretKeySize < len(secretKey) {
 		fmt.Printf("SECRET_KEY must be at least %d chars\n", minSecretKeySize)
 		os.Exit(1)
 	}
+
 	cfg, err := config.Load("config/local.yaml")
 	if err != nil {
 		fmt.Println(err)
 	}
-
-	_ = cfg
 
 	log := logger.NewLogger(cfg)
 	log.Info("logger inited")
@@ -48,16 +48,17 @@ func main() {
 	repo := sqliterepo.NewSQLiteRepository(log, db)
 	postRepo := repo.Post()
 	userRepo := repo.User()
-
+	postRepo.InitPostDatabase()
+	userRepo.InitUserDatabase()
 
 	mux := http.NewServeMux()
 
 	// TODO: separate routers using a mux. (userMux, postMux, etc...)
-
-	mux.Handle("POST /post/create", auth.AuthMiddleware(post.Create(log, postRepo)))
-	mux.Handle("PATCH /post/update/{id}", auth.AuthMiddleware(post.Update(log, postRepo)))
-	mux.Handle("DELETE /post/delete/{id}", auth.AuthMiddleware(post.Delete(log, postRepo)))
-	mux.HandleFunc("GET /post/{id}", post.Read(log, postRepo))
+	mux.Handle("POST /post/", auth.AuthMiddleware(post.Create(log, postRepo)))
+	mux.Handle("PATCH /post/{id}", auth.AuthMiddleware(post.Update(log, postRepo)))
+	mux.Handle("DELETE /post/{id}", auth.AuthMiddleware(post.Delete(log, postRepo)))
+	mux.HandleFunc("GET /post/{id}", post.Read(log, postRepo, userRepo))
+	mux.HandleFunc("GET /posts", post.GetList(log, postRepo, userRepo))
 
 	// User
 	mux.HandleFunc("POST /user/signup", user.SignUpHandler(log, userRepo))

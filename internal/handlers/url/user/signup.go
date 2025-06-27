@@ -62,24 +62,21 @@ func SignUpHandler(log logger.Logger, userCreator UserCreator) http.HandlerFunc 
 		log := log.With(slog.String("fn", "handlers.url.user.SignUp"))
 
 		if r.Method != http.MethodPost {
-			jsonutil.WriteJSON(w, http.StatusMethodNotAllowed,
-				response.Error(http.StatusMethodNotAllowed, "method not allowed"))
+			util.ErrorResponse(w, http.StatusMethodNotAllowed, "Method Not Allowed")
 			return
 		}
 
 		var req SignUpRequest
 		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 			log.Info("error decoding request", sl.Error(err))
-			jsonutil.WriteJSON(w, http.StatusBadRequest,
-				response.Error(http.StatusBadRequest, "invalid request"))
+			util.ErrorResponse(w, http.StatusBadRequest, "Invalid Request")
 			return
 		}
 
 		if err := cstValidator.Struct(req); err != nil {
 			validationErrors := err.(validator.ValidationErrors)
 			log.Info("validation failed", sl.Error(validationErrors))
-			jsonutil.WriteJSON(w, http.StatusBadRequest,
-				response.Error(http.StatusBadRequest, "validation error"))
+			util.ErrorResponse(w, http.StatusBadRequest, "Validation Error")
 			return
 		}
 
@@ -93,29 +90,18 @@ func SignUpHandler(log logger.Logger, userCreator UserCreator) http.HandlerFunc 
 		if err != nil {
 			if errors.Is(err, repository.ErrEmailAlreadyExists) {
 				log.Info("email exists", slog.String("email", req.Email))
-				jsonutil.WriteJSON(w, http.StatusConflict,
-					response.Error(http.StatusConflict, "email already exists"))
+				util.ErrorResponse(w, http.StatusConflict, "Email Already Exists")
 				return
 			} else if errors.Is(err, repository.ErrUsernameAlreadyExists) {
 				log.Info("username exists", slog.String("username", req.Username))
-				jsonutil.WriteJSON(w, http.StatusConflict,
-					response.Error(http.StatusConflict, "username already exists"))
+				util.ErrorResponse(w, http.StatusConflict, "Username Already Exists")
 				return
 			}
 
 			log.Error("create user error", sl.Error(err))
-			jsonutil.WriteJSON(w, http.StatusInternalServerError,
-				response.Error(http.StatusInternalServerError, "internal error"))
+			util.ErrorResponse(w, http.StatusInternalServerError, "Internal Server Error")
 			return
 		}
-
-		// accessToken, _, err := jwtMaker.CreateToken(userID, req.Email, 15*time.Minute)
-		// if err != nil {
-		// 	log.Error("token creation failed", sl.Error(err))
-		// 	jsonutil.WriteJSON(w, http.StatusInternalServerError,
-		// 		response.Error(http.StatusInternalServerError, "token error"))
-		// 	return
-		// }
 
 		resp := SignUpResponse{
 			BaseResponse: response.BaseResponse{

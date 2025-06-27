@@ -20,9 +20,9 @@ type ServerConfig struct {
 }
 
 type LoggerConfig struct {
-	Mode string `yaml:"mode" env-default:"local"` // local | dev | prod
-	DisableSrc bool `yaml:"disable_src" env-default:"false"`
-	FilePath string `yaml:"file_path" env-default:""` // если пусто - вывод в stdout
+	Mode       string `yaml:"mode" env-default:"local"` // local | dev | prod
+	DisableSrc bool   `yaml:"disable_src" env-default:"false"`
+	FilePath   string `yaml:"file_path" env-default:""` // если пусто - вывод в stdout
 }
 
 type SQLiteConfig struct {
@@ -33,4 +33,19 @@ type RedisConfig struct {
 	Addr     string `yaml:"addr" env-default:"localhost:6379"`
 	Password string `yaml:"password" env-required:"true"`
 	Username string `yaml:"username" env-required:"true"`
+}
+
+type Frontend struct {
+	StaticFiles StaticFilePath   `yaml:"static_files"`
+	Templates   TemplateFilePath `yaml:"templates"`
+}
+
+type StaticFilePath struct {
+	Root string `yaml:"root" env-required:"true"`
+	Css  string `yaml:"css" env-required:"true"`
+	Js   string `yaml:"js" env-required:"true"`
+}
+
+type TemplateFilePath struct {
+	Root string `yaml:"root" env-required:"true"`
 }

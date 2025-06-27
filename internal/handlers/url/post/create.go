@@ -13,6 +13,7 @@ import (
 	"blog/internal/middlewares/auth"
 	"blog/internal/models"
 	"blog/internal/repository"
+	"blog/internal/util"
 	"blog/internal/util/logger"
 	"blog/internal/util/logger/sl"
 )
@@ -37,31 +38,27 @@ func Create(log logger.Logger, creator PostCreator) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		log := log.With(slog.String("fn", "handlers.url.post.Create"))
 		if r.Method != http.MethodPost {
-			jsonutil.WriteJSON(w, http.StatusMethodNotAllowed,
-				response.Error(http.StatusMethodNotAllowed, "Method Not Allowed"))
+			util.ErrorResponse(w, http.StatusMethodNotAllowed, "Method Not Allowed")
 			return
 		}
 
 		authorID, ok := r.Context().Value(auth.UserIDCtxKey).(int64)
 		if !ok {
-			jsonutil.WriteJSON(w, http.StatusInternalServerError,
-				response.Error(http.StatusInternalServerError, "Internal Server Error"))
+			util.ErrorResponse(w, http.StatusInternalServerError, "Internal Server Error")
 			return
 		}
 
 		var req CreateRequest
 		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 			log.Info("error decoding request", sl.Error(err))
-			jsonutil.WriteJSON(w, http.StatusBadRequest,
-				response.Error(http.StatusBadGateway, "EOF"))
+			util.ErrorResponse(w, http.StatusBadRequest, "EOF")
 			return
 		}
 
 		if err := validate.Struct(req); err != nil {
 			validationErrors := err.(validator.ValidationErrors)
 			log.Info("error validation request", sl.Error(validationErrors))
-			jsonutil.WriteJSON(w, http.StatusBadRequest,
-				response.Error(http.StatusBadRequest, "invalid json format"))
+			util.ErrorResponse(w, http.StatusBadRequest, "invalid json format")
 			return
 		}
 
@@ -75,13 +72,11 @@ func Create(log logger.Logger, creator PostCreator) http.HandlerFunc {
 		if err != nil {
 			if errors.Is(err, repository.ErrForeignKeyFailed) {
 				log.Error("author does not exist", sl.Error(err))
-				jsonutil.WriteJSON(w, http.StatusBadRequest,
-					response.Error(http.StatusBadRequest, "author does not exist"))
+				util.ErrorResponse(w, http.StatusBadRequest, "author does not exist")
 				return
 			}
 			log.Error("failed creating post", sl.Error(err))
-			jsonutil.WriteJSON(w, http.StatusBadRequest,
-				response.Error(http.StatusInternalServerError, "internal server error"))
+			util.ErrorResponse(w, http.StatusBadRequest,"internal server error")
 			return
 		}
 
@@ -91,6 +86,7 @@ func Create(log logger.Logger, creator PostCreator) http.HandlerFunc {
 			},
 			PostID: postID,
 		}
+
 		log.Info("created post", slog.Int64("post_id", postID), slog.String("title", post.Title))
 		err = jsonutil.WriteJSON(w, http.StatusCreated, resp)
 		if err != nil {

@@ -14,65 +14,81 @@ import (
 	"blog/internal/middlewares/auth"
 	"blog/internal/models"
 	"blog/internal/repository"
+	"blog/internal/util"
 	"blog/internal/util/logger"
 	"blog/internal/util/logger/sl"
 )
 
-type UpdateRequest struct {
-	Title    string `json:"title" validate:"required,min=3,max=255"`
-	Content  string `json:"content" validate:"required,min=10"`
+type updateRequest struct {
+	Title   string `json:"title" validate:"required,min=3,max=255"`
+	Content string `json:"content" validate:"required,min=10"`
 }
 
-type UpdateResponse struct {
+type updateResponse struct {
 	response.BaseResponse
 	PostID int64 `json:"post_id,omitempty"`
 }
 
-type PostUpdater interface {
+type postUpdater interface {
+	GetPostByID(id int64) (*models.Post, error)
 	UpdatePost(post *models.Post) error
 }
 
-func Update(log logger.Logger, postUpdater PostUpdater) http.HandlerFunc {
+func Update(log logger.Logger, postUpdater postUpdater) http.HandlerFunc {
 	validate := validator.New()
-	return func(w http.ResponseWriter, r* http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
 		log := log.With(slog.String("fn", "handlers.url.post.Update"))
 
 		authorID, ok := r.Context().Value(auth.UserIDCtxKey).(int64)
 		if !ok {
-			jsonutil.WriteJSON(w, http.StatusInternalServerError,
-				response.Error(http.StatusInternalServerError, "Internal Server Error"))
+			util.ErrorResponse(w, http.StatusInternalServerError, "Internal Server Error")
 			return
 		}
 
 		postID, err := strconv.ParseInt(r.PathValue("id"), 10, 64)
 		if err != nil {
 			log.Info("invalid path value", sl.Error(err))
-			jsonutil.WriteJSON(w, http.StatusBadRequest,
-				response.Error(http.StatusBadRequest, "Bad Request"))
+			util.ErrorResponse(w, http.StatusBadRequest, "Bad Request")
 			return
 		}
 
-		var req UpdateRequest
+		var req updateRequest
 		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 			log.Info("error decoding request", sl.Error(err))
 			// TODO: add error handler for jsonutil
-			jsonutil.WriteJSON(w, http.StatusBadRequest,
-						response.Error(http.StatusBadGateway, "EOF"))
+			util.ErrorResponse(w, http.StatusBadRequest, "EOF")
 			return
 		}
 
 		if err := validate.Struct(req); err != nil {
 			validationErrors := err.(validator.ValidationErrors)
 			log.Info("error validation request", sl.Error(validationErrors))
-			jsonutil.WriteJSON(w, http.StatusBadRequest,
-						response.Error(http.StatusBadRequest, "invalid json format"))
+			util.ErrorResponse(w, http.StatusBadRequest, "Invalid Json Format")
+			return
+		}
+		post, err := postUpdater.GetPostByID(postID)
+		if err != nil {
+			if errors.Is(err, repository.ErrNotExists) {
+				log.Info("post is not exists", sl.Error(err), slog.Int64("post_id", postID))
+				util.ErrorResponse(w, http.StatusNotFound, "Not Found")
+				return
+			}
+		}
+
+		if post.AuthorID != authorID {
+			log.Info("forbidden: user is not the author",
+				slog.Int64("post_id", postID),
+				slog.Int64("post_author_id", post.AuthorID),
+				slog.Int64("author_id", authorID))
+
+			util.ErrorResponse(w, http.StatusForbidden, "Forbidden")
 			return
 		}
 
 		newPost := &models.Post{
-			ID: postID,
-			Title: req.Title,
-			Content: req.Title,
+			ID:       postID,
+			Title:    req.Title,
+			Content:  req.Title,
 			AuthorID: authorID,
 		}
 
@@ -80,17 +96,15 @@ func Update(log logger.Logger, postUpdater PostUpdater) http.HandlerFunc {
 		if err != nil {
 			if errors.Is(err, repository.ErrNotExists) {
 				log.Info("post is not exists", sl.Error(err), slog.Int64("post_id", postID))
-				jsonutil.WriteJSON(w, http.StatusNotFound,
-							response.Error(http.StatusNotFound, "Not Found"))
+				util.ErrorResponse(w, http.StatusNotFound, "Not Found")
 				return
 			}
 			log.Error("error update post", sl.Error(err), slog.Int64("post_id", postID))
-			jsonutil.WriteJSON(w, http.StatusInternalServerError,
-						response.Error(http.StatusInternalServerError, "Internal Server Error"))
+			util.ErrorResponse(w, http.StatusInternalServerError, "Internal Server Error")
 			return
 		}
 
-		resp := UpdateResponse{
+		resp := updateResponse{
 			BaseResponse: response.BaseResponse{
 				Status: http.StatusAccepted,
 			},

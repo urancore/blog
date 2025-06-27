@@ -15,3 +15,11 @@ redis:
   addr: "redis-local:6379"
   password: "s3cr3tP@ssw0rd"
   username: "admin"
+
+frontend:
+  static_files:
+    root: "static"
+    css: "static/css"
+    js: "static/js"
+  templates:
+    root: "templates/"
