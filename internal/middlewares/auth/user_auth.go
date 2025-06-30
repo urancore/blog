@@ -6,15 +6,12 @@ import (
 	"net/http"
 	"strings"
 
-
 	"blog/internal/handlers/auth"
 	"blog/internal/util"
 )
 
-// 401 unauthorized
-
 const (
-	authHeader = "Authorization"
+	authHeader   = "Authorization"
 	UserIDCtxKey = "user_id"
 )
 

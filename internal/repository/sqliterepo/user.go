@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	sqlite "github.com/mattn/go-sqlite3"
+	"github.com/mattn/go-sqlite3"
 
 	"blog/internal/models"
 	"blog/internal/repository"
@@ -43,9 +43,9 @@ func (r *SQliteUserRepo) CreateUser(user *models.User) (int64, error) {
 
 	res, err := r.db.Exec(query, user.Username, user.Password, user.Email)
 	if err != nil {
-		var sqliteErr sqlite.Error
+		var sqliteErr sqlite3.Error
 		if errors.As(err, &sqliteErr) {
-			if sqliteErr.ExtendedCode == sqlite.ErrConstraintUnique {
+			if errors.Is(sqliteErr.ExtendedCode, sqlite3.ErrConstraintUnique) {
 				switch {
 				case strings.Contains(sqliteErr.Error(), "user.username"):
 					return 0, repository.ErrUsernameAlreadyExists
@@ -149,7 +149,7 @@ func (r *SQliteUserRepo) UpdateUser(user *models.User) error {
 		user.ID,
 	)
 	if err != nil {
-		if errors.Is(err, sqlite.ErrConstraintUnique) {
+		if errors.Is(err, sqlite3.ErrConstraintUnique) {
 			if strings.Contains(err.Error(), "username") {
 				return repository.ErrUsernameAlreadyExists
 			}

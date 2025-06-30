@@ -1,4 +1,4 @@
-package post
+package comment
 
 import (
 	"errors"
@@ -9,7 +9,6 @@ import (
 	"blog/internal/api/jsonutil"
 	"blog/internal/api/response"
 	"blog/internal/middlewares/auth"
-	"blog/internal/models"
 	"blog/internal/repository"
 	"blog/internal/util"
 	"blog/internal/util/logger"
@@ -18,63 +17,64 @@ import (
 
 type deleteResponse struct {
 	response.BaseResponse
-	PostID int64 `json:"post_id,omitempty"`
+	CommentID int64 `json:"comment_id,omitempty"`
+	AuthorID  int64 `json:"author_id,omitempty"`
 }
 
-type postDeleter interface {
-	GetPostByID(id int64) (*models.Post, error)
-	DeletePost(id int64) error
+type commentDeleter interface {
+	DeleteComment(id int64) error
+	GetCommentAuthorID(commentID int64) (int64, error)
 }
 
-func Delete(log logger.Logger, postDeleter postDeleter) http.HandlerFunc {
+func Delete(log logger.Logger, commentDeleter commentDeleter) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		log := log.With("fn", "handlers.url.post.Delete")
 
 		authorID, ok := r.Context().Value(auth.UserIDCtxKey).(int64)
 		if !ok {
-			log.Error("author id not found in context or invalid type", slog.String("user_id_ctx_key", auth.UserIDCtxKey))
 			util.ErrorResponse(w, http.StatusInternalServerError, "Internal Server Error")
 			return
 		}
 
-		postID, err := strconv.ParseInt(r.PathValue("id"), 10, 64)
+		commentID, err := strconv.ParseInt(r.PathValue("id"), 10, 64)
 		if err != nil {
-			log.Info("invalid path value for post id", sl.Error(err))
+			log.Info("invalid path value", sl.Error(err))
 			util.ErrorResponse(w, http.StatusBadRequest, "Bad Request")
 			return
 		}
 
-		post, err := postDeleter.GetPostByID(postID)
+		commentAuthorID, err := commentDeleter.GetCommentAuthorID(commentID)
 		if err != nil {
 			if errors.Is(err, repository.ErrNotExists) {
-				log.Info("post to delete not found", slog.Int64("post_id", postID), sl.Error(err))
-				util.ErrorResponse(w, http.StatusNotFound, "Post not found")
+				log.Info("comment is not exists", slog.Int64("comment_id", commentID))
+				util.ErrorResponse(w, http.StatusNotFound, "Not Found")
 				return
 			}
-			log.Error("failed to retrieve post for deletion", slog.Int64("post_id", postID), sl.Error(err))
+			log.Error("comment delete error", slog.Int64("comment_id", commentID), sl.Error(err))
 			util.ErrorResponse(w, http.StatusInternalServerError, "Internal Server Error")
 			return
-		}
 
-		postAuthorID := post.AuthorID
-		if postAuthorID != authorID {
+		} else if commentAuthorID != authorID {
 			log.Info("forbidden: user is not the author",
-				slog.Int64("post_id", postID),
-				slog.Int64("post_author_id", post.AuthorID),
-				slog.Int64("author_id", authorID))
+				slog.Int64("author_id", authorID),
+				slog.Int64("comment_author_id", commentAuthorID),
+				slog.Int64("comment_id", commentID))
 
 			util.ErrorResponse(w, http.StatusForbidden, "Forbidden")
 			return
 		}
 
-		err = postDeleter.DeletePost(postID)
+		err = commentDeleter.DeleteComment(commentID)
 		if err != nil {
 			if errors.Is(err, repository.ErrNotExists) {
-				log.Info("post is not exists", slog.Int64("post_id", postID))
-				util.ErrorResponse(w, http.StatusNotFound, "Not Found")
+				log.Info("comment not found", slog.Int64("comment_id", commentID), sl.Error(err))
+				util.ErrorResponse(w, http.StatusNotFound, "Comment Not Found")
 				return
 			}
-			log.Error("post delete error", slog.Int64("post_id", postID), sl.Error(err))
+			log.Info("comment not found",
+				slog.Int64("comment_id", commentID),
+				sl.Error(err))
+
 			util.ErrorResponse(w, http.StatusInternalServerError, "Internal Server Error")
 			return
 		}
@@ -83,10 +83,11 @@ func Delete(log logger.Logger, postDeleter postDeleter) http.HandlerFunc {
 			BaseResponse: response.BaseResponse{
 				Status: http.StatusOK,
 			},
-			PostID: postID,
+			CommentID: commentID,
+			AuthorID:  authorID,
 		}
 
-		log.Info("post deleted", slog.Int64("post_id", postID))
+		log.Info("comment deleted", slog.Int64("comment_id", commentID))
 		err = jsonutil.WriteJSON(w, http.StatusAccepted, resp)
 		if err != nil {
 			log.Error("json writer error", sl.Error(err))

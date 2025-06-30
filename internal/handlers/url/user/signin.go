@@ -10,9 +10,9 @@ import (
 
 	"blog/internal/api/jsonutil"
 	"blog/internal/api/response"
+	"blog/internal/handlers/auth"
 	"blog/internal/models"
 	"blog/internal/repository"
-	"blog/internal/handlers/auth"
 	"blog/internal/util"
 	"blog/internal/util/logger"
 	"blog/internal/util/logger/sl"

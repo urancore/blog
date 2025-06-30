@@ -46,7 +46,7 @@ func (r *SQLiteRepository) Post() repository.PostRepository {
 }
 
 func (r *SQLiteRepository) Comment() repository.CommentRepository {
-	return nil
+	return &SQliteCommentRepo{log: r.log, db: r.db}
 }
 
 func (r *SQLiteRepository) Close() error {

@@ -2,9 +2,12 @@ package sqliterepo
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 	"log/slog"
 	"time"
+
+	"github.com/mattn/go-sqlite3"
 
 	"blog/internal/models"
 	"blog/internal/repository"
@@ -35,6 +38,7 @@ func (r *SQlitePostRepo) InitPostDatabase() error {
 
 	return nil
 }
+
 func (r *SQlitePostRepo) GetPostByID(id int64) (*models.Post, error) {
 	log := r.log.With("fn", "repository.sqliterepo.GetPostByID")
 	query := `
@@ -54,7 +58,7 @@ func (r *SQlitePostRepo) GetPostByID(id int64) (*models.Post, error) {
 		&post.UpdatedAt,
 	)
 	if err != nil {
-		if err == sql.ErrNoRows {
+		if errors.Is(err, sql.ErrNoRows) {
 			log.Info("post not found", slog.Int64("id", id))
 			return nil, repository.ErrNotExists
 		}
@@ -81,7 +85,7 @@ func (r *SQlitePostRepo) CreatePost(post *models.Post) (int64, error) {
 		&updatedAt,
 	)
 	if err != nil {
-		if err.Error() == "FOREIGN KEY constraint failed" {
+		if errors.Is(err, sqlite3.ErrConstraintForeignKey) {
 			return 0, repository.ErrForeignKeyFailed
 		}
 		log.Error("failed to create post", sl.Error(err))

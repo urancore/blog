@@ -5,6 +5,7 @@ import (
 
 	"github.com/go-playground/validator/v10"
 )
+
 // TODO: add checking errors
 func NewCustomValidator() *validator.Validate {
 	validate := validator.New()
