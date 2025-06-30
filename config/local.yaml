@@ -5,14 +5,14 @@ server:
 
 logger:
   mode: "local"
-  "disable_src": false
+  disable_src: true
   file_path: "/stat/log/blog.log"
 
 sqlite:
   path: "file:storage/blog.db?_foreign_keys=on"
 
 redis:
-  addr: "redis-local:6379"
+  addr: "0.0.0.0:6379"
   password: "s3cr3tP@ssw0rd"
   username: "admin"
 
@@ -23,3 +23,6 @@ frontend:
     js: "static/js"
   templates:
     root: "templates/"
+
+auth:
+  secret_key: "01234567890123456789012345678912"

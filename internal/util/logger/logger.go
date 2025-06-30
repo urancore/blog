@@ -23,6 +23,12 @@ type Logger interface {
 }
 
 func NewLogger(cfg *config.Config) Logger {
+	if cfg == nil {
+		slogLogger := slog.Default()
+		slogLogger.Warn("logger not init", slog.String("cfg", "nil"))
+		return &slogWrapper{slogLogger}
+	}
+
 	var handler slog.Handler
 	var level slog.Leveler = slog.LevelDebug
 	var addSource bool = !cfg.Logger.DisableSrc

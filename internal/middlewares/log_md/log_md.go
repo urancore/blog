@@ -26,7 +26,6 @@ func (r *ResponseRecorder) Write(b []byte) (int, error) {
 	return size, err
 }
 
-
 func MiddlewareLogger(log logger.Logger) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -40,27 +39,26 @@ func MiddlewareLogger(log logger.Logger) func(http.Handler) http.Handler {
 			}
 			// TODO: add ip addr
 			log = log.With("handling request",
-					slog.String("method", r.Method),
-					slog.String("path", r.URL.Path),
-					slog.String("request_id", reqID),
-					slog.String("referer", rRef),
-					slog.String("user_agent", r.UserAgent()),
-					slog.String("protocol", r.Proto),
-					slog.String("ip", r.RemoteAddr), // FIXME: reqrite to real ip
-					slog.String("host", r.Host),
+				slog.String("method", r.Method),
+				slog.String("path", r.URL.Path),
+				slog.String("request_id", reqID),
+				slog.String("referer", rRef),
+				slog.String("user_agent", r.UserAgent()),
+				slog.String("protocol", r.Proto),
+				slog.String("ip", r.RemoteAddr), // FIXME: reqrite to real ip
+				slog.String("host", r.Host),
 			)
-
 
 			wRecorder := &ResponseRecorder{
 				ResponseWriter: w,
-				StatusCode: http.StatusOK, // default
+				StatusCode:     http.StatusOK, // default
 			}
-			defer func(){
+			defer func() {
 				duration := time.Since(start)
 				log = log.With(slog.Int("status", wRecorder.StatusCode),
-						slog.Int("response_size", wRecorder.BodySize),
-						slog.Duration("duration", duration),
-						slog.String("duaration_human", duration.String()),
+					slog.Int("response_size", wRecorder.BodySize),
+					slog.Duration("duration", duration),
+					slog.String("duaration_human", duration.String()),
 				)
 				log.Info("====== request completed ======")
 			}()

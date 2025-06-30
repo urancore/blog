@@ -26,13 +26,13 @@ type SignUpRequest struct {
 }
 
 type UserRes struct {
-	UserID   int64  `json:"user_id"`
+	UserID int64 `json:"user_id"`
 }
 
 type SignUpResponse struct {
 	response.BaseResponse
 	// AccessToken string  `json:"access_token"`
-	User        UserRes `json:"user"`
+	User UserRes `json:"user"`
 }
 
 type UserCreator interface {
@@ -108,7 +108,7 @@ func SignUpHandler(log logger.Logger, userCreator UserCreator) http.HandlerFunc 
 				Status: http.StatusCreated,
 			},
 			User: UserRes{
-				UserID:   userID,
+				UserID: userID,
 			},
 		}
 

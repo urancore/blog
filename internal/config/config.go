@@ -5,10 +5,12 @@ import (
 )
 
 type Config struct {
-	Server ServerConfig `yaml:"server"`
-	Logger LoggerConfig `yaml:"logger"`
-	SQLite SQLiteConfig `yaml:"sqlite"`
-	Redis  RedisConfig  `yaml:"redis"`
+	Environment string       `yaml:"env" env-default:"local"`
+	Server      ServerConfig `yaml:"server"`
+	Logger      LoggerConfig `yaml:"logger"`
+	SQLite      SQLiteConfig `yaml:"sqlite"`
+	Redis       RedisConfig  `yaml:"redis"`
+	Auth        AuthConfig   `yaml:"auth"`
 }
 
 type ServerConfig struct {
@@ -48,4 +50,8 @@ type StaticFilePath struct {
 
 type TemplateFilePath struct {
 	Root string `yaml:"root" env-required:"true"`
+}
+
+type AuthConfig struct {
+	SecretKey string `yaml:"secret_key"`
 }

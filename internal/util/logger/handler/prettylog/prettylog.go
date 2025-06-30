@@ -5,10 +5,10 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"log/slog"
 	"runtime"
 	"strings"
 	"time"
-	"log/slog"
 
 	"github.com/fatih/color"
 )
@@ -38,7 +38,7 @@ func (h *prettyHandler) Handle(ctx context.Context, r slog.Record) error {
 	var buf bytes.Buffer
 
 	// Format time
-	timestamp := r.Time.Format("["+time.DateTime+"]")
+	timestamp := r.Time.Format("[" + time.DateTime + "]")
 
 	if _, err := buf.WriteString(color.WhiteString(timestamp + " ")); err != nil {
 		return err
