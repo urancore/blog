@@ -1,7 +1,10 @@
 # stupid blog api
 мне лень делать фронтенд
 
-"POST /api/post"
+### Post
+
+`"POST /api/post"`
+```
 ? create post
 request:
 	json{
@@ -16,9 +19,10 @@ responce:
 		"status": error code,
 		"error": "error text"
 	}
-
+```
 
 "PATCH api/post/{id}"
+```
 request:
 	json{
 		"title": "text" required,min=3,max=255
@@ -32,9 +36,10 @@ response:
 		"status": error code,
 		"error": "error text"
 	}
+```
 
-
-"DELETE /api/post/{id}"
+`"DELETE /api/post/{id}"`
+```
 response:
 	json{
 		"status": 2xx,
@@ -43,9 +48,10 @@ response:
 		"status": error code,
 		"error": "error text"
 	}
+```
 
-
-"GET /api/post/{id}"
+`"GET /api/post/{id}"`
+```
 response:
 	json{
 		"status": 2xx,
@@ -58,9 +64,10 @@ response:
 		"status": error code,
 		"error": "error text"
 	}
+```
 
-
-"GET /api/posts"
+`"GET /api/posts"`
+```
 ? queries:
 	limit - posts parse limit, default=10
 	offset - posts parse offset, default=0
@@ -91,10 +98,11 @@ response:
 		"status": error code,
 		"error": "error text"
 	}
+```
 
-
-// User
-"POST /api/user/signup"
+### User
+`"POST /api/user/signup"`
+```
 "username": minlen=5
 "password": minlen=8, valid=[A-Z, a-z, 1-9]
 request:
@@ -113,9 +121,10 @@ response:
 		"status": error code,
 		"error": "error text"
 	}
+```
 
-
-"POST /api/user/signin"
+`"POST /api/user/signin"`
+```
 request:
 	json{
 		"username":"abc12",
@@ -130,10 +139,12 @@ response:
 		"status": error code,
 		"error": "error text"
 	}
+```
 
+### Comment
 
-// Comment
-"POST /api/comment"
+`"POST /api/comment"`
+```
 ? create comment
 "content": minlen=10,maxlen=1024
 request:
@@ -151,9 +162,10 @@ response:
 		"status": error code,
 		"error": "error text"
 	}
+```
 
-
-"DELETE /api/comment/{id}"
+`"DELETE /api/comment/{id}"`
+```
 request:
 	json{
 		"post_id": 123
@@ -167,9 +179,10 @@ response:
 		"status": error code,
 		"error": "error text"
 	}
+```
 
-
-"PATCH /api/comment/{id}"
+`"PATCH /api/comment/{id}"`
+```
 ? {id} - comment id
 "content": min=10,max=1024
 request:
@@ -187,8 +200,10 @@ response:
 		"error": "error text"
 	}
 
+```
 
-"GET /api/comments"
+`"GET /api/comments"`
+```
 ? queries:
 	limit - comment parse limit, default=10
 	offset - comment parse offset, default=0
@@ -219,3 +234,4 @@ response:
 		"status": error code,
 		"error": "error text"
 	}
+```
