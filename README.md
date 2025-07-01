@@ -21,7 +21,7 @@ responce:
 	}
 ```
 
-"PATCH api/post/{id}"
+`"PATCH api/post/{id}"`
 ```
 request:
 	json{
